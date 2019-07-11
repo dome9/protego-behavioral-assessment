@@ -1,0 +1,60 @@
+service: protego-behavioral
+
+provider:
+  name: aws
+  runtime: python2.7
+
+plugins:
+  - serverless-protego-plugin
+
+functions:
+  ProtegoBehave:
+    handler: lambda_handler.lambda_handler
+    role: ProtegoBehavioralTestInsecureRole
+    events:
+      - http:
+          path: test-protego
+          method: post
+          cors: true
+    stage: dev
+
+
+resources:
+  Resources:
+    ProtegoBehavioralTestInsecureRole:
+       Type: AWS::IAM::Role
+       Properties:
+         RoleName: DevProtegoBehavioralTestInsecureRole
+         AssumeRolePolicyDocument:
+           Version: '2012-10-17'
+           Statement:
+             - Effect: Allow
+               Principal:
+                 Service:
+                   - lambda.amazonaws.com
+               Action: sts:AssumeRole
+         Policies:
+           - PolicyName: DevProtegoBehavioralTestInsecurePolicy
+             PolicyDocument:
+               Version: '2012-10-17'
+               Statement:
+                 - "Effect": "Allow"
+                   "Action": [
+                     "iam:*",
+                     "s3:*",
+                     "logs:*",
+                     "lambda:*",
+                     "dynamodb:*"
+                   ]
+                   "Resource": "*"
+
+package:
+  include:
+    - 'lambda_handler.py'
+  exclude:
+    - 'node_modules/**'
+    - 'package-lock.json'
+    - 'README.md'
+    - 'run.py'
+    - 'requirements.txt'
+    - 'protego-config.json'

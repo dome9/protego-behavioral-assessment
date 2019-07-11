@@ -1,0 +1,5 @@
+protego-config.json
+node_modules/*
+.serverless/*
+.idea/*
+package-lock.json
