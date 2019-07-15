@@ -69,7 +69,7 @@ def lambda_handler(event, context):
   elif not skip and "mode" in body and body["mode"] == "whitelist":
     default_fname = "/tmp/test_file"
     default_url = "https://www.protego.io"
-    default_proc =  ["echo", "this is a test"]
+    default_proc = ["echo", "this is a test"]
     payloads = {}
     # argument initialization
     if "payloads" in body:
@@ -155,6 +155,17 @@ def lambda_handler(event, context):
       ra[str(client.__dict__["_endpoint"]).split('(')[0]] = {}
       ra[str(client.__dict__["_endpoint"]).split('(')[0]]["status"] = "ok"
       ra[str(client.__dict__["_endpoint"]).split('(')[0]]["msg"] = "list_buckets"
+    except Exception as e:
+      ra[str(client.__dict__["_endpoint"]).split('(')[0]] = {}
+      ra[str(client.__dict__["_endpoint"]).split('(')[0]]["status"] = "err"
+      ra[str(client.__dict__["_endpoint"]).split('(')[0]]["msg"] = str(e)
+
+    try:
+      client = boto3.client('iam')
+      client.list_roles()
+      ra[str(client.__dict__["_endpoint"]).split('(')[0]] = {}
+      ra[str(client.__dict__["_endpoint"]).split('(')[0]]["status"] = "ok"
+      ra[str(client.__dict__["_endpoint"]).split('(')[0]]["msg"] = "list_roles"
     except Exception as e:
       ra[str(client.__dict__["_endpoint"]).split('(')[0]] = {}
       ra[str(client.__dict__["_endpoint"]).split('(')[0]]["status"] = "err"

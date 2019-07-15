@@ -1,0 +1,68 @@
+service: protego-behavioral-attacker
+
+provider:
+  name: aws
+  runtime: python2.7
+
+functions:
+  ProtegoAttacker:
+    timeout: 5
+    memorySize: 128
+    handler: attacker_lambda.lambda_handler
+    role: AttackerLambdaRole
+    stage: dev
+    environment:
+      target_endpoint: XXXXX
+      normal_payload: XXXXX
+    events:
+      - schedule:
+          name: regular-whitelisted-behavior
+          description: 'Triggers target function with normal behaviour'
+          rate: rate(20 seconds)
+          enabled: true
+          input:
+            mode: do_normal
+            stageParams:
+              stage: dev
+
+      - schedule:
+          name: regular-whitelisted-behavior
+          description: 'Triggers target function with attack behaviour and input'
+          rate: rate(1 minute)
+          enabled: true
+          input:
+            mode: do_attack
+            stageParams:
+              stage: dev
+
+resources:
+  Resources:
+    AttackerLambdaRole:
+       Type: AWS::IAM::Role
+       Properties:
+         RoleName: AttackerLambdaRolePolicy
+         AssumeRolePolicyDocument:
+           Version: '2012-10-17'
+           Statement:
+             - Effect: Allow
+               Principal:
+                 Service:
+                   - lambda.amazonaws.com
+               Action: sts:AssumeRole
+         Policies:
+           - PolicyName: AttackerLambdaRolePolicy
+             PolicyDocument:
+               Version: '2012-10-17'
+               Statement:
+                 - "Effect": "Allow"
+                   "Action": [
+                     "logs:*",
+                     "apigateway: GetRestApis"
+                   ]
+                   "Resource": "*"
+
+package:
+  include:
+    - 'attacker_lambda.py'
+  exclude:
+    - 'sls.template.yml'

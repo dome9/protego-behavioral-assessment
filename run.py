@@ -32,13 +32,34 @@ PAYLOAD = {'mode': 'whitelist', 'payloads': {'file': '/tmp/file.txt', 'host': 'h
 DEMO_ATTACK_PAYLOAD = {'mode': 'attack', 'payloads': {
     'host': 'evil.com',
     'file': '/tmp/target',
-    'cmd': ['curl', 'fraud.com'],
+    'cmd': ['cat', '/var/task/lambda_handler.py'],
     'code': 'import boto3\ns=boto3.client("s3")\nr=s.create_bucket(Bucket="protego_demo_free_bucket")\nprint(r)'
 }}
 
 ATTACK = {}
 DEMO_ATTACK = False
 # endregion
+
+
+def deploy_attacker():
+    os.system ("cd attacker; sls deploy --aws-profile {} --region {}".format(PROFILE, REGION))
+
+
+def add_endpoint_to_attacker(endpoint):
+    try:
+        with open ("attacker/sls.template.yml") as f:
+            content = f.read()
+            f.close()
+            content = content.replace("target_endpoint: XXXXX", "target_endpoint: {}".format(endpoint))
+            content = content.replace("normal_payload: XXXXX", "normal_payload: '{}'".format(json.dumps(PAYLOAD)))
+            s = open("attacker/serverless.yml", "w+")
+            s.write((content))
+            s.close()
+    except:
+        print ("could not add endoint to attacker")
+        return False
+
+    return True
 
 
 # function to be mapped over
@@ -168,9 +189,17 @@ def main():
         for api in res["items"]:
             if api["name"].find("protego-behavioral") > -1:
                 ENDPOINT = "https://{}.execute-api.{}.amazonaws.com/{}/test-protego".format(api["id"], REGION, STAGE)
-        if ENDPOINT is None:
+                ep_added = add_endpoint_to_attacker(ENDPOINT)
+        if ENDPOINT is None or not ep_added:
             sys.exit("could not find the function's endpoint (did you delete the function?). "
                      "Please run script with the --endpoint (-e) option.")
+    else:
+        ep_added = add_endpoint_to_attacker(ENDPOINT)
+        if not ep_added:
+            print "could not add endpoint to attacker/serverless.yml. Please, add it manually"
+
+    if ep_added:
+        deploy_attacker()
 
     # WHITELIST or ATTACK MODE
     if len(ATTACK) == 0 and not DEMO_ATTACK:
