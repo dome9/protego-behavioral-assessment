@@ -22,9 +22,9 @@ normal_payload = os.environ["normal_payload"]
 
 
 def lambda_handler(event, context):
-    if "input" in event and "mode" in event["input"]:
+    if "mode" in event:
         try:
-            mode = event["input"]["mode"]
+            mode = event["mode"]
 
             if mode == "do_normal":
                 payload = json.dumps(json.loads(normal_payload))

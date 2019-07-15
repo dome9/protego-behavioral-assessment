@@ -23,7 +23,7 @@ ENDPOINT = None
 STAGE="dev"
 LIMIT = 1000
 DEMO_STAGE = "conductor"
-THREADS = 32
+THREADS = 64
 pbar = None
 PROTEGO_PLUGIN_FOLDER = "node_modules/serverless-protego-plugin"
 PROTEGO_CONF_FILE = "protego-config.json"
@@ -38,11 +38,12 @@ DEMO_ATTACK_PAYLOAD = {'mode': 'attack', 'payloads': {
 
 ATTACK = {}
 DEMO_ATTACK = False
+DEPLOY_ATTACKER = False
 # endregion
 
 
 def deploy_attacker():
-    os.system ("cd attacker; sls deploy --aws-profile {} --region {}".format(PROFILE, REGION))
+    os.system ("cd attacker; sls deploy --aws-profile {} --region {}; cd ..".format(PROFILE, REGION))
 
 
 def add_endpoint_to_attacker(endpoint):
@@ -73,9 +74,10 @@ def calculateParallel():
     pool.close()
     pool.join()
     pbar.close()
-    sys.exit("\n\nAll done.\nYour function should have a whitelist profile within a few minutes.\n"
-        "After you see the profile in the bashboard, use this script to submit attack payloads (--attack or --demo).\n"
-        "Run $ python run.py --help for more info.")
+    sys.exit("\nAll done.\nYour function should have a whitelist profile within a few minutes.\n"
+        "After you see the whitelist in the bashboard, use this script to submit attack payloads (--attack or --demo).\n"
+        "You can also then deploy an attacker cron (--deploy-attacker).\n"
+        "Run $ python run.py --help for more info.\n")
 
 
 # whitelist creation through api gateway
@@ -121,6 +123,7 @@ def main():
     global ATTACK
     global DEMO_ATTACK
     global DEMO_ATTACK_PAYLOAD
+    global DEPLOY_ATTACKER
     # endregion
 
     # region Args
@@ -134,8 +137,9 @@ def main():
     parser.add_argument("-t", "--threads", required=False, default=THREADS,  help="number of parallel threads (defualt: {})".format(THREADS))
     parser.add_argument("-l", "--limit", required=False, default=LIMIT, help="how many requests the send (default: {})".format(LIMIT))
     parser.add_argument("-i", "--input", required=False, default=PAYLOAD, help="payload to create whitelist. Default is: {}".format(json.dumps(PAYLOAD)))
-    parser.add_argument("-x", "--attack", required=False, default=ATTACK, help="send the received attack payload (use only after whitelist was created)")
+    parser.add_argument("-a", "--attack", required=False, default=ATTACK, help="send the received attack payload (use only after whitelist was created)")
     parser.add_argument("-d", "--demo", required=False, default=DEMO_ATTACK, action="store_true", help="(after whitelist) runs demo attack: {}".format(json.dumps(DEMO_ATTACK_PAYLOAD)))
+    parser.add_argument("-x", "--deploy-attacker", required=False, default=DEPLOY_ATTACKER, action="store_true", help="Deploy attacker chronjob")
 
     args = parser.parse_args()
 
@@ -160,6 +164,10 @@ def main():
 
     if PROFILE == "default":
         print("No AWS profile was provided. Trying 'default'. To set a profile, run script with --profile (-p).")
+
+    if DEPLOY_ATTACKER:
+        deploy_attacker()
+        sys.exit(1)
 
     # check if protgeo serverless plugin is installed
     if os.path.isdir(PROTEGO_PLUGIN_FOLDER):
@@ -189,17 +197,10 @@ def main():
         for api in res["items"]:
             if api["name"].find("protego-behavioral") > -1:
                 ENDPOINT = "https://{}.execute-api.{}.amazonaws.com/{}/test-protego".format(api["id"], REGION, STAGE)
-                ep_added = add_endpoint_to_attacker(ENDPOINT)
-        if ENDPOINT is None or not ep_added:
+                #ep_added = add_endpoint_to_attacker(ENDPOINT)
+        if ENDPOINT is None:
             sys.exit("could not find the function's endpoint (did you delete the function?). "
                      "Please run script with the --endpoint (-e) option.")
-    else:
-        ep_added = add_endpoint_to_attacker(ENDPOINT)
-        if not ep_added:
-            print "could not add endpoint to attacker/serverless.yml. Please, add it manually"
-
-    if ep_added:
-        deploy_attacker()
 
     # WHITELIST or ATTACK MODE
     if len(ATTACK) == 0 and not DEMO_ATTACK:

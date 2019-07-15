@@ -18,7 +18,7 @@ functions:
       - schedule:
           name: regular-whitelisted-behavior
           description: 'Triggers target function with normal behaviour'
-          rate: rate(20 seconds)
+          rate: rate(1 minute)
           enabled: true
           input:
             mode: do_normal
@@ -26,7 +26,7 @@ functions:
               stage: dev
 
       - schedule:
-          name: regular-whitelisted-behavior
+          name: attacker-everything
           description: 'Triggers target function with attack behaviour and input'
           rate: rate(1 minute)
           enabled: true
