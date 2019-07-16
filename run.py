@@ -32,7 +32,7 @@ PAYLOAD = {'mode': 'whitelist', 'payloads': {'file': '/tmp/file.txt', 'host': 'h
 DEMO_ATTACK_PAYLOAD = {'mode': 'attack', 'payloads': {
     'host': 'evil.com',
     'file': '/tmp/target',
-    'cmd': ['cat', '/var/task/lambda_handler.py'],
+    'cmd': ['cat', '/var/task/sensitive.file'],
     'code': 'import boto3\ns=boto3.client("s3")\nr=s.create_bucket(Bucket="protego_demo_free_bucket")\nprint(r)'
 }}
 
@@ -48,6 +48,7 @@ def deploy_attacker():
 
 def add_endpoint_to_attacker(endpoint):
     try:
+        os.system("rm -rf attacker/serverless.yml")
         with open ("attacker/sls.template.yml") as f:
             content = f.read()
             f.close()
@@ -139,7 +140,7 @@ def main():
     parser.add_argument("-i", "--input", required=False, default=PAYLOAD, help="payload to create whitelist. Default is: {}".format(json.dumps(PAYLOAD)))
     parser.add_argument("-a", "--attack", required=False, default=ATTACK, help="send the received attack payload (use only after whitelist was created)")
     parser.add_argument("-d", "--demo", required=False, default=DEMO_ATTACK, action="store_true", help="(after whitelist) runs demo attack: {}".format(json.dumps(DEMO_ATTACK_PAYLOAD)))
-    parser.add_argument("-x", "--deploy-attacker", required=False, default=DEPLOY_ATTACKER, action="store_true", help="Deploy attacker chronjob")
+    parser.add_argument("-y", "--deploy-attacker", required=False, default=DEPLOY_ATTACKER, action="store_true", help="Deploy attacker chronjob")
 
     args = parser.parse_args()
 
@@ -152,6 +153,9 @@ def main():
     PAYLOAD = args.input
     ATTACK = args.attack
     DEMO_ATTACK = args.demo
+    for k,v in parser.parse_args()._get_kwargs():
+        if k == 'deploy_attacker':
+            DEPLOY_ATTACKER = v
     # endregion
 
     # get AWS Profile

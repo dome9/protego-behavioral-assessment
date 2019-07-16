@@ -51,6 +51,7 @@ resources:
 package:
   include:
     - 'lambda_handler.py'
+    - 'sensitive.file'
   exclude:
     - 'node_modules/**'
     - 'package-lock.json'
