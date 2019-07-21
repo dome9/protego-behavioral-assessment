@@ -12,7 +12,7 @@ attack_payload = {"mode": "attack", "payloads": {
 }}
 
 io_payloads = {
-    "sqli": "' waitfor delay '0:0:20' /* ",
+    "sqli": "' admin or 1=1 or ''='",
     "nosql": ", $where: '1 == 1'",
     "xss": "<script>do_evil()</script>",
     "xxe": "<?xml version=\"1.0\"?>\n<!DOCTYPE foo [\n<!ENTITY ac SYSTEM \"php://filter/read=convert.base64-encode/resource=http://example.com/viewlog.php\">]>\n<foo><result>&ac;</result></foo>",
