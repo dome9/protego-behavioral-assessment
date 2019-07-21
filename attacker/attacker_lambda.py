@@ -53,7 +53,7 @@ def lambda_handler(event, context):
             # i/o
             for k,v in io_payloads.iteritems():
                 payload = attack_payload
-                payload["payloads"][k] = io_payloads[v]
+                payload["payloads"]["io"] = v
                 try:
                     target = os.environ["target_endpoint"]
                     req = urllib2.Request(url=target, data=json.dumps(payload))

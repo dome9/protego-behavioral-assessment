@@ -171,6 +171,7 @@ def main():
 
     if DEPLOY_ATTACKER:
         deploy_attacker()
+        os.system('rm -rf attacker/serverless.yml')
         sys.exit(1)
 
     # check if protgeo serverless plugin is installed
