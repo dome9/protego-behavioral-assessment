@@ -55,7 +55,7 @@ def add_endpoint_to_attacker(endpoint):
             content = content.replace("target_endpoint: XXXXX", "target_endpoint: {}".format(endpoint))
             content = content.replace("normal_payload: XXXXX", "normal_payload: '{}'".format(json.dumps(PAYLOAD)))
             s = open("attacker/serverless.yml", "w+")
-            s.write((content))
+            s.write(content)
             s.close()
     except:
         print ("could not add endoint to attacker")
@@ -170,6 +170,7 @@ def main():
         print("No AWS profile was provided. Trying 'default'. To set a profile, run script with --profile (-p).")
 
     if DEPLOY_ATTACKER:
+        add_endpoint_to_attacker(ENDPOINT)
         deploy_attacker()
         os.system('rm -rf attacker/serverless.yml')
         sys.exit(1)
@@ -202,12 +203,9 @@ def main():
         for api in res["items"]:
             if api["name"].find("protego-behavioral") > -1:
                 ENDPOINT = "https://{}.execute-api.{}.amazonaws.com/{}/test-protego".format(api["id"], REGION, STAGE)
-                add_endpoint_to_attacker(ENDPOINT)
         if ENDPOINT is None:
             sys.exit("could not find the function's endpoint (did you delete the function?). "
                      "Please run script with the --endpoint (-e) option.")
-    else:
-        add_endpoint_to_attacker(ENDPOINT)
     # WHITELIST or ATTACK MODE
     if len(ATTACK) == 0 and not DEMO_ATTACK:
         print "Starting behavioural profiling on: {}".format(str(ENDPOINT))
