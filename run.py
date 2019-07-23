@@ -202,11 +202,12 @@ def main():
         for api in res["items"]:
             if api["name"].find("protego-behavioral") > -1:
                 ENDPOINT = "https://{}.execute-api.{}.amazonaws.com/{}/test-protego".format(api["id"], REGION, STAGE)
-                #ep_added = add_endpoint_to_attacker(ENDPOINT)
+                add_endpoint_to_attacker(ENDPOINT)
         if ENDPOINT is None:
             sys.exit("could not find the function's endpoint (did you delete the function?). "
                      "Please run script with the --endpoint (-e) option.")
-
+    else:
+        add_endpoint_to_attacker(ENDPOINT)
     # WHITELIST or ATTACK MODE
     if len(ATTACK) == 0 and not DEMO_ATTACK:
         print "Starting behavioural profiling on: {}".format(str(ENDPOINT))
