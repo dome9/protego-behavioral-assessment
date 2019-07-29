@@ -18,7 +18,10 @@ functions:
           cors: true
     stage: dev
 
-
+custom:
+  protego:
+    proact:
+      Enabled: false
 resources:
   Resources:
     ProtegoBehavioralTestInsecureRole:
@@ -52,10 +55,11 @@ package:
   include:
     - 'lambda_handler.py'
     - 'sensitive.file'
+    - 'requirements.txt'
+
   exclude:
     - 'node_modules/**'
     - 'package-lock.json'
     - 'README.md'
     - 'run.py'
-    - 'requirements.txt'
     - 'protego-config.json'
